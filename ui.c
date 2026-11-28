@@ -32,6 +32,10 @@ const char *start_screen[] = {
 int draw_start_screen(){
     initscr();
     clear();
+    int program_start;
+    //stty ECHO and ICANON 조작 ON
+    set_terminal(0);
+
     int height = sizeof(start_screen) / sizeof(start_screen[0]);
     int width = strlen(start_screen[0]);
     int i, start_height = (LINES - height) / 2, start_width = (COLS - width) / 2;
@@ -43,13 +47,17 @@ int draw_start_screen(){
     }
     refresh();
     
-    move(LINES - 1, COLS -1);
+    move(LINES - 1, COLS-1);
 
-    //stty ECHO and ICANON 조작 ON
-    getch();
-    // input 값을 return 하기
-    // 1 or 2 
-    endwin();
+    while(1){
+        program_start = getch();
 
-    return 0;
+        if(program_start == '1')
+            return 1;
+        if(program_start == '2'){
+            return 2;
+        }
+
+        // 1,2 아닌 경우 예외처리? 안내문자?
+    }
 }
