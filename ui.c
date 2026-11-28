@@ -142,6 +142,66 @@ const char horse_frames[FRAME_COUNT][HORSE_HEIGHT][HORSE_WIDTH] = {
     }
 };
 
+// PAYMENT PAGE
+const char *payment_horse[] = 
+{
+    "           /\\          /\\",
+    "          /  \\________/  \\",
+    "         /    ////////    \\",
+    "        |                  |",
+    "        |   ($)      ($)   |      $",
+    "        |                  |   $",
+    "        |     ________     |",
+    "        |    /        \\    |",
+    "        |   |  o    o  |   |",
+    "         \\  |          |  /",
+    "          \\  \\________/  /",
+    "           \\  \\______/  /",
+    "            |          |",
+    "        *   O          O   *",
+    "             O        O",
+    "              O      O",
+    "               OOOOOO",
+    "                |  |",
+    "               /----\\",
+    "              |  $$  |",
+    "               \\----/",
+    "                 *",
+    "",
+    "           GIVE ME MY MONEY!"
+};
+
+const char *success_horse[] = {
+    "         !PAYMENT SUCCESSFUL!",
+    "        $       *       $       *",
+    "             \\    |    /",
+    "          /\\             /\\",
+    "         /  \\___________/  \\",
+    "        /    ///////////    \\",
+    "       |                     |",
+    "   ~   |   ($)       ($)     |   ~",
+    "       |    ^         ^      |",
+    "       |      _________      |",
+    "        \\    /  o   o  \\    /",
+    "         |  |           |  |",
+    "         |  | \\_______/ |  |",
+    "          \\  \\_________/  /",
+    "           \\_____________/",
+    "       !!   |           |   !!",
+    "        *   O           O   *",
+    "             O         O",
+    "              OOOOOOOOO",
+    "                  |",
+    "                [$$$]",
+    "",
+    "      $  *  YEEEEEEHAW!!  *  $",
+    "",
+    "",
+    "    THANK YOU FOR RIDING WITH US!",
+    "",
+    "      Press any key to exit..."
+};
+
 // START PAGE 구현
 int draw_start_screen(){
     initscr();
@@ -150,6 +210,7 @@ int draw_start_screen(){
     //stty ECHO and ICANON 조작 ON
     set_terminal(0);
 
+    // 안내 화면 출력
     int height = sizeof(start_screen) / sizeof(start_screen[0]);
     int width = strlen(start_screen[0]);
     int i, start_height = (LINES - height) / 2, start_width = (COLS - width) / 2;
@@ -163,6 +224,7 @@ int draw_start_screen(){
     
     move(LINES - 1, COLS-1);
 
+    // 입력 값 저장
     while(1){
         program_start = getch();
 
@@ -171,8 +233,6 @@ int draw_start_screen(){
         if(program_start == '2'){
             return 2;
         }
-
-        // 1,2 아닌 경우 예외처리? 안내문자?
     }
 }
 
@@ -217,7 +277,7 @@ void draw_meter(WINDOW *win, int elapsed, int fare){
 void draw_control(WINDOW *win){
     int height, width;
     getmaxyx(win, height, width);
-    char outbutton[] = "0: STOP & Pay";
+    char outbutton[] = "[0] STOP & Pay";
 
     wstandout(win);
     mvwprintw(win, 0, width - strlen(outbutton), "%s", outbutton);
@@ -241,6 +301,13 @@ int set_timer(int n_msecs){
     new_timeset.it_interval.tv_usec = n_usecs;
 
     return setitimer(ITIMER_REAL, &new_timeset, NULL);
+}
+
+int stop_timer(void)
+{
+    struct itimerval timer = {0};
+
+    return setitimer(ITIMER_REAL, &timer, NULL);
 }
 
 void timer_handler(int signo){
@@ -329,22 +396,65 @@ int draw_running_screen(){
         stop = wgetch(control_win);
         
         if(stop == '0'){
+            stop_timer();
+            
             delwin(horse_win);
             delwin(meter_win);
             delwin(control_win);
-
+            
             return fare;
         }
     }
 }
 
-
-int draw_payment_screen(int fare){
+// payment page 구현
+void draw_payment_screen(int fare){
     clear();
+
+    int height, width;
+    getmaxyx(stdscr, height, width);
+    int imageHeight = sizeof(payment_horse) / sizeof(payment_horse[0]);
+    int imageWidth = strlen(payment_horse[0]);
+    int i, start_height = 2,  start_width = ((width - imageWidth) / 2) - 5;
+    int pay = 0;
+    box(stdscr, '|', '~');
+    
+    mvprintw(0, (width / 2) - 8, "!!PAYMENT TIME!!");
+
+
+    for(i = 0; i < imageHeight; i++){
+        mvprintw(start_height, start_width, "%s", payment_horse[i]);
+        start_height ++;
+    }
+
+    mvhline(++start_height, 1, ACS_HLINE, COLS - 2);
+    
+//    standout();
+    mvprintw(++start_height, 2, "Total Fare :\t%d KRW", fare);
+ //   standend();
+    mvprintw(++start_height, 2, "[1] PAY");
+
+    move(height - 1, width - 1);
+
     refresh();
 
-    getch();
+    while(1){
+        pay = getch();
 
-    set_terminal(1);
-    endwin();
+        if(pay == '1'){
+            imageHeight = sizeof(success_horse) / sizeof(success_horse[0]);
+            imageWidth = strlen(success_horse[0]);
+            start_height = 2;
+            clear();
+
+            for(i = 0; i < imageHeight; i++){
+                mvprintw(start_height++, start_width, "%s", success_horse[i]);
+            }
+
+            getch();
+            endwin();
+
+            return;
+        }
+    }
 }

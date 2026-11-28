@@ -3,6 +3,5 @@
 
 void save_terminal();
 void set_terminal(int mode);
-void restore_terminal(void);
 
 #endif
