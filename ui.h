@@ -6,6 +6,7 @@ int draw_running_screen();
 void draw_horse(WINDOW *win, int frame);
 void draw_meter(WINDOW *win, int elapsed, int fare);
 void draw_control(WINDOW *win);
+int setup_signal(void);
 int draw_payment_screen(int fare);
 
 
